@@ -66,9 +66,14 @@
   직관성 있고 뚜렷한 형태, 그리고 라즈베리파이와의 연결을 위해 (VCC, GND, INPUT) 구조로 구성된 스위치 센서를 사용했다.
   <img src="https://github.com/khw274/Capstone/assets/125671828/33540e10-fcd2-46a1-a645-bef2583eabcf" width="250" height="250"/>
 
-  라즈베리파이에는 용도별로 핀이 구성되어 있다. 브레드보드를 이용해 라즈베리파이와 스위치 센서의 전원(VCC), 접지(GND), 입력(INPUT)을 서로 연결하였다.  
-  <img src="https://github.com/khw274/Capstone/assets/125671828/4f69bbe6-f8cf-4573-ba87-97b436bdfbdb" width="400" height="400"/>  <img src="https://github.com/khw274/Capstone/assets/125671828/8424dd25-ae0f-4f1d-bcc4-2f13f23cae89" width="400" height="400"/>
 
+  라즈베리파이에는 용도별로 핀이 구성되어 있다. 브레드보드를 이용해 라즈베리파이와 스위치 센서의 전원(VCC), 접지(GND), 입력(INPUT)을 서로 연결하였다.  
+  <img src="https://github.com/khw274/Capstone/assets/125671828/ac4e6b82-3dce-44a3-b4d4-64138fd459ab" width="400" height="400"/>  <img src="https://github.com/khw274/Capstone/assets/125671828/8424dd25-ae0f-4f1d-bcc4-2f13f23cae89" width="400" height="400"/>
+  
+  사용했던 핀을 색깔별로 표시해두었다.(초록색: INPUT, 빨간색: 라즈베리파이 연결, 파란색: 스위치 센서 연결)
+  
+  스위치 센서의 입력값이 들어올 핀은 18번으로 설정했다. 
+  
 
 
 
