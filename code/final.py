@@ -328,12 +328,12 @@ while 1:
         # plt.imshow(img_out)
         # plt.show()
 
-        if '0' in chars: #첫 번째 차
+        if '77차1004' in chars: # 첫 번째 차
             print('          * 인식 성공 *')
             # x = img.imread('success.jpg')
 
             # fig = plt.figure(figsize=(14.4, 8.2), facecolor='white')
-            # fig.patch.set_alpha(1) #투명도
+            # fig.patch.set_alpha(1) # 투명도
             # plt.imshow(x)
             # plt.axis('off')
             # plt.show()
@@ -341,7 +341,7 @@ while 1:
             file = open('77차1004.txt', mode = 'r')
             print(file.read())
 
-            Vid = cv2.VideoCapture('car1.mp4') #첫 번째 차 인터페이스
+            Vid = cv2.VideoCapture('car1.mp4') # 첫 번째 차 인터페이스
 
             if Vid.isOpened():
                 fps = Vid. get(cv2.CAP_PROP_FPS)
@@ -369,12 +369,12 @@ while 1:
             Vid.release()
             cv2.destroyAllWindows()
 
-        elif '2' in chars: #두 번째 차
+        elif '96쇼2962' in chars: # 두 번째 차
             print('          * 인식 성공 *')
             # x = img.imread('success.jpg')
 
             # fig = plt.figure(figsize=(14.4, 8.2), facecolor='white')
-            # fig.patch.set_alpha(1) #투명도
+            # fig.patch.set_alpha(1) # 투명도
             # plt.imshow(x)
             # plt.axis('off')
             # plt.show()
@@ -382,7 +382,7 @@ while 1:
             file = open('96쇼2962.txt', mode = 'r')
             print(file.read())
 
-            Vid = cv2.VideoCapture('car2.mp4') #두 번째 차 인터페이스
+            Vid = cv2.VideoCapture('car2.mp4') # 두 번째 차 인터페이스
 
             if Vid.isOpened():
                 fps = Vid. get(cv2.CAP_PROP_FPS)
@@ -410,12 +410,12 @@ while 1:
             Vid.release()
             cv2.destroyAllWindows()
 
-        elif '8' in chars: #세 번째 차
+        elif '86타8558' in chars: # 세 번째 차
             print('          * 인식 성공 *')
             # x = img.imread('success.jpg')
 
             # fig = plt.figure(figsize=(14.4, 8.2), facecolor='white')
-            # fig.patch.set_alpha(1) #투명도
+            # fig.patch.set_alpha(1) # 투명도
             # plt.imshow(x)
             # plt.axis('off')
             # plt.show()
@@ -423,7 +423,7 @@ while 1:
             file = open('86타8558.txt', mode = 'r')
             print(file.read())
 
-            Vid = cv2.VideoCapture('car3.mp4') #세 번째 차 인터페이스
+            Vid = cv2.VideoCapture('car3.mp4') # 세 번째 차 인터페이스
 
             if Vid.isOpened():
                 fps = Vid. get(cv2.CAP_PROP_FPS)
