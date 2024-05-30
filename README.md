@@ -103,7 +103,38 @@ while 1:  # 무한 루프 시작
 <img src="https://github.com/khw274/Capstone/assets/125671828/b361163e-b686-4c73-b774-4b7b413ba983" width="380" height="380"/>  
 USB 형태로 라즈베리파이에 쉽게 연결할 수 있는 구조이며 위아래로 각도 조절이 가능해 위치를 조절하는데 용이한 장점이 있었다.
 
+카메라를 연결했으므로 연결이 잘 됐는지 작동 테스트를 위해 코드를 설계하였다.
+```
+import time, cv2, os
+import numpy as np
 
+# 카메라 초기화 및 설정
+cap = cv2.VideoCapture(0)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)  # 카메라 해상도 너비 설정
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)  # 카메라 해상도 높이 설정
+
+# 이미지 캡처 및 표시
+ret, image = cap.read()  # ret: 이미지 읽기 성공 여부, image: 캡처된 이미지
+if ret == True:
+    cv2.imshow('CAMERA', image)  # 캡처된 이미지 창에 표시
+    img_captured = cv2.imwrite('test.jpg', image)  # 이미지 파일로 저장
+    resize_img = cv2.resize(image, (1435, 800))  # 이미지 크기 조정
+    cv2.imshow('CAMERA', resize_img)  # 조정된 이미지 창에 표시
+    cv2.waitKey(3500)  # 3.5초 대기 (밀리초 단위)
+
+# 자원 해제
+cap.release()  # 카메라 자원 해제
+cv2.destroyAllWindows()  # 모든 OpenCV 창 닫기
+
+time.sleep(1)  # 1초 대기 
+```
+코드는 다음과 같다. 
+
+카메라의 해상도과 너비를 기본적으로 설정해두고 이미지 잘 읽어들이면 캡처된 이미지를 창에 표시해 확인할 수 있도록 했다.  
+
+처음 코드를 실행했을시 이미지가 화면보다 훨씬 작게 표시가 되어 여러번 이미지 크기를 재조정해 resize된 이미지를 띄워 사이즈 문제를 해결하였다.  
+<img src="https://github.com/khw274/Capstone/assets/125671828/99aa23f3-a7d5-4962-93d9-286f602b031b" width="380" height="480"/>  <img src="https://github.com/khw274/Capstone/assets/125671828/7152c736-953f-4782-b028-5e50304618c5" width="380" height="480"/>       
+사진은 사이즈 조절 전으로 카메라가 잘 작동되고 이미지 촬영 또한 정상 작동되는 것을 확인할 수 있었다.
 
 
 
