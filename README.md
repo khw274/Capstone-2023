@@ -150,13 +150,13 @@ time.sleep(1)  # 1초 대기
 자동차 번호판 번호를 정상적으로 추출이 되었으면 이제 번호에 적합한 충전 인터페이스를 실행할 차례이다.
 
 ```
-if '77차1004' in chars: #첫 번째 차
+if '77차1004' in chars:  # 첫 번째 차
     print('          * 인식 성공 *')
 
     file = open('77차1004.txt', mode = 'r')
     print(file.read())
 
-    Vid = cv2.VideoCapture('car1.mp4') #첫 번째 차 인터페이스
+    Vid = cv2.VideoCapture('car1.mp4')  # 첫 번째 차 인터페이스
 
     if Vid.isOpened():
         fps = Vid. get(cv2.CAP_PROP_FPS)
@@ -179,13 +179,13 @@ if '77차1004' in chars: #첫 번째 차
     Vid.release()
     cv2.destroyAllWindows()
 
-elif '96쇼2962' in chars: #두 번째 차
+elif '96쇼2962' in chars:  # 두 번째 차
     print('          * 인식 성공 *')
 
     file = open('96쇼2962.txt', mode = 'r')
     print(file.read())
 
-    Vid = cv2.VideoCapture('car2.mp4') #두 번째 차 인터페이스
+    Vid = cv2.VideoCapture('car2.mp4')  # 두 번째 차 인터페이스
 
     if Vid.isOpened():
         fps = Vid. get(cv2.CAP_PROP_FPS)
@@ -208,13 +208,13 @@ elif '96쇼2962' in chars: #두 번째 차
     Vid.release()
     cv2.destroyAllWindows()
 
-elif '86타8558' in chars: #세 번째 차
+elif '86타8558' in chars:  # 세 번째 차
     print('          * 인식 성공 *')
 
     file = open('86타8558.txt', mode = 'r')
     print(file.read())
 
-    Vid = cv2.VideoCapture('car3.mp4') #세 번째 차 인터페이스
+    Vid = cv2.VideoCapture('car3.mp4')  # 세 번째 차 인터페이스
 
     if Vid.isOpened():
         fps = Vid. get(cv2.CAP_PROP_FPS)
