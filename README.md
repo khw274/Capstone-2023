@@ -104,6 +104,8 @@ while 1:  # 무한 루프 시작
 USB 형태로 라즈베리파이에 쉽게 연결할 수 있는 구조이며 위아래로 각도 조절이 가능해 위치를 조절하는데 용이한 장점이 있었다.
 
 카메라를 연결했으므로 연결이 잘 됐는지 작동 테스트를 위해 코드를 설계하였다.
+
+코드를 설계하기 전 기본적으로 라즈비안에 OpenCV 4.5.5 버전을 설치했다.
 ```
 import time, cv2, os
 import numpy as np
@@ -130,16 +132,117 @@ time.sleep(1)  # 1초 대기
 ```
 코드는 다음과 같다. 
 
-카메라의 해상도과 너비를 기본적으로 설정해두고 이미지 잘 읽어들이면 캡처된 이미지를 창에 표시해 확인할 수 있도록 했다.  
+카메라의 해상도과 너비를 기본적으로 설정해두고 이미지 잘 읽어들이면 캡처된 이미지를 창에 표시해 확인할 수 있도록 했다.
 
 처음 코드를 실행했을시 이미지가 화면보다 훨씬 작게 표시가 되어 여러번 이미지 크기를 재조정해 resize된 이미지를 띄워 사이즈 문제를 해결하였다.  
 <img src="https://github.com/khw274/Capstone/assets/125671828/99aa23f3-a7d5-4962-93d9-286f602b031b" width="380" height="480"/>  <img src="https://github.com/khw274/Capstone/assets/125671828/7152c736-953f-4782-b028-5e50304618c5" width="380" height="480"/>       
 사진은 사이즈 조절 전으로 카메라가 잘 작동되고 이미지 촬영 또한 정상 작동되는 것을 확인할 수 있었다.
 
-
-
 ##### 3. 번호 추출
+이제 자동차 번호판을 인식하고 번호를 추출할 차례이다.
+
+해당 코드를 작성하면서 오류가 많이 발생했다. 수많은 디버깅과 확인 작업을 해가면서 코드를 설계하느라 꽤나 긴 시간이 소요되었다.
+
+
+
+
 ##### 4. 영상 실행
+자동차 번호판 번호를 정상적으로 추출이 되었으면 이제 번호에 적합한 충전 인터페이스를 실행할 차례이다.
+
+```
+if '77차1004' in chars: #첫 번째 차
+    print('          * 인식 성공 *')
+
+    file = open('77차1004.txt', mode = 'r')
+    print(file.read())
+
+    Vid = cv2.VideoCapture('car1.mp4') #첫 번째 차 인터페이스
+
+    if Vid.isOpened():
+        fps = Vid. get(cv2.CAP_PROP_FPS)
+        f_count = Vid.get(cv2.CAP_PROP_FRAME_COUNT)
+        f_width = Vid.get(cv2.CAP_PROP_FRAME_WIDTH)
+        f_height = Vid.get(cv2. CAP_PROP_FRAME_HEIGHT)
+
+    while Vid.isOpened() :
+        ret, frame = Vid. read() 
+        if ret:
+            re_frame = cv2.resize(frame, (round(f_width/1.33), round(f_height/1.35)))
+            cv2.imshow('Car_Video',re_frame)
+            key = cv2.waitKey(10)
+
+            if key == ord('q'):
+                break
+            
+        else:
+            break
+    Vid.release()
+    cv2.destroyAllWindows()
+
+elif '96쇼2962' in chars: #두 번째 차
+    print('          * 인식 성공 *')
+
+    file = open('96쇼2962.txt', mode = 'r')
+    print(file.read())
+
+    Vid = cv2.VideoCapture('car2.mp4') #두 번째 차 인터페이스
+
+    if Vid.isOpened():
+        fps = Vid. get(cv2.CAP_PROP_FPS)
+        f_count = Vid.get(cv2.CAP_PROP_FRAME_COUNT)
+        f_width = Vid.get(cv2.CAP_PROP_FRAME_WIDTH)
+        f_height = Vid.get(cv2. CAP_PROP_FRAME_HEIGHT)
+
+    while Vid.isOpened() :
+        ret, frame = Vid. read() 
+        if ret:
+            re_frame = cv2.resize(frame, (round(f_width/1.33), round(f_height/1.35)))
+            cv2.imshow('Car_Video',re_frame)
+            key = cv2.waitKey(10)
+
+            if key == ord('q'):
+                break
+            
+        else:
+            break
+    Vid.release()
+    cv2.destroyAllWindows()
+
+elif '86타8558' in chars: #세 번째 차
+    print('          * 인식 성공 *')
+
+    file = open('86타8558.txt', mode = 'r')
+    print(file.read())
+
+    Vid = cv2.VideoCapture('car3.mp4') #세 번째 차 인터페이스
+
+    if Vid.isOpened():
+        fps = Vid. get(cv2.CAP_PROP_FPS)
+        f_count = Vid.get(cv2.CAP_PROP_FRAME_COUNT)
+        f_width = Vid.get(cv2.CAP_PROP_FRAME_WIDTH)
+        f_height = Vid.get(cv2. CAP_PROP_FRAME_HEIGHT)
+
+    while Vid.isOpened() :
+        ret, frame = Vid. read() 
+        if ret:
+            re_frame = cv2.resize(frame, (round(f_width/1.33), round(f_height/1.35)))
+            cv2.imshow('Car_Video',re_frame)
+            key = cv2.waitKey(10)
+
+            if key == ord('q'):
+                break
+            
+        else:
+            break
+    Vid.release()
+    cv2.destroyAllWindows()
+    
+else:
+    print('인식 실패')
+
+time.sleep(1)
+```
+
 ##### 5. 초기화
 
 
