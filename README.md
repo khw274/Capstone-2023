@@ -328,6 +328,15 @@ VNC 사용 설정을 했으니 이제 VNC View를 사용해 라즈베리파이�
 <img src="https://github.com/khw274/Capstone/assets/125671828/c266cdd1-7ad2-4886-9a54-35bc0f3a9831" width="450" height="400"/>
 
 ## 최종 결과 
+최종적으로 캡스톤 발표를 위해 실제 차를 렌트해 데모 영상을 촬영하였다.
+
+전시회 등에서 실제 차를 끌고 갈 수는 없기에 영상을 촬영하는 방법을 선택했다.
+
+차량 앞에 충전기 구조물을 설치했고 실제 충전기 사용과 최대한 비슷하게 구현하기 위해 노력했다.
+
+차량을 직접 운전해 주차하고 스위치를 눌러 프로그램을 구동시키는 과정을 영상에 담았다.  
+<img src="https://github.com/khw274/Capstone/assets/125671828/2fd9297d-d761-422f-a50c-a4759335c96b" width="400" height="550"/> <img src="https://github.com/khw274/Capstone/assets/125671828/ffcee714-0c5e-4178-b1fd-a92cf02cb02b" width="400" height="550"/>  
+죄측 사진은 완성된 구조물 모습이고 우측 사진은 구조물 뒤 설치한 장치의 모습이다. 위로는 모니터를 부착해놓았다.
 
 
 
