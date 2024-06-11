@@ -5,7 +5,7 @@
 ```캡스톤디자인 작품 전시회```  
 ```2023 벤처 기업인의 밤 시상식 및 수상작 부스 운영```
 
-<img src="https://github.com/khw274/Capstone/assets/125671828/5482591b-1cf4-41c4-bc61-caceb55c60c4" width="330" height="340"/> <img src="https://github.com/khw274/Capstone/assets/125671828/facc7f16-7fa6-4f9b-a125-d13bed2717e9" width="330" height="340"/> <img src="https://github.com/khw274/Capstone/assets/125671828/36480f70-d709-41d3-abcf-ca4d3334c6bb" width="330" height="340"/>
+<img src="https://github.com/khw274/Capstone/assets/125671828/5482591b-1cf4-41c4-bc61-caceb55c60c4" width="300" height="340"/> <img src="https://github.com/khw274/Capstone/assets/125671828/facc7f16-7fa6-4f9b-a125-d13bed2717e9" width="300" height="340"/> <img src="https://github.com/khw274/Capstone/assets/125671828/36480f70-d709-41d3-abcf-ca4d3334c6bb" width="300" height="340"/>
 
 
 
