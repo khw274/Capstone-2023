@@ -284,7 +284,7 @@ break
 
 VNC VIEWER로 연결하기 위해 다음과 같은 기초 설정이 필요하다.
 ![image](https://github.com/khw274/Capstone/assets/125671828/2a4dd0b5-9e2a-4ab0-82c6-00f369ea9811)  
-```terminal
+```
 adb devices  # Android Debug Bridge(ADB)를 사용하여 연결된 Android 디바이스 목록을 표시하는 명령,
                정상적으로 연결되었으면 해당 디바이스의 고유 식별자가 목록에 표시된다
 
