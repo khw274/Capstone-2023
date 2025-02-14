@@ -153,236 +153,181 @@ time.sleep(1)  # 1초 대기
 해당 코드를 작성하면서 오류가 많이 발생했다. 수많은 디버깅과 확인 작업을 해가면서 코드를 설계하느라 꽤나 긴 시간이 소요되었다.
 
 ```python
-import cv2  #OpenCV
-import numpy as np  # numpy
-import matplotlib.pyplot as plt  #이미지 프로세싱한 결과 표시하기 위함
-import pytesseract  #이미지에서 글씨를 읽어내기 위함
+import cv2  # OpenCV 라이브러리 (컴퓨터 비전 기능 제공)
+import numpy as np  # numpy 라이브러리 (행렬 및 수학 연산)
+import matplotlib.pyplot as plt  # 이미지 처리 결과 시각화
+import pytesseract  # 이미지에서 문자 인식 (OCR)
 
+# 다크 테마 스타일 설정 (시각화 시 검은색 배경)
 plt.style.use('dark_background')
 
-#**이미지 불러오기**
-img_ori = cv2.imread('test.jpg')   #cv2.imread(): 이미지 불러옴
+# **이미지 불러오기**
+img_ori = cv2.imread('test.jpg')  # 이미지 파일 불러오기
 
-height, width, channel = img_ori.shape   #너비 높이 채널 저장
+# **이미지 크기 정보 추출**
+height, width, channel = img_ori.shape  # 이미지의 높이, 너비, 채널 정보 추출
 
-# test(미리 이미지 띄워봄, 각 작업 사이에 테스트용)
-# plt.figure(figsize=(12, 10))
-# plt.imshow(img_ori, cmap='gray')
+# **그레이 스케일 변환**
+gray = cv2.cvtColor(img_ori, cv2.COLOR_BGR2GRAY)  # 컬러 이미지를 흑백(Grayscale)으로 변환
 
-#**그레이 스케일**
-gray = cv2.cvtColor(img_ori, cv2.COLOR_BGR2GRAY)   #cv2.cvtColor(): 이미지 컬러 체계 변경, 이미지 그레이로 변경
+# **스레시홀딩 (Thresholding) 처리**
+img_blurred = cv2.GaussianBlur(gray, ksize=(5, 5), sigmaX=0)  # 가우시안 블러 적용 (노이즈 제거)
+img_thresh = cv2.adaptiveThreshold(
+    img_blurred, maxValue=255.0, adaptiveMethod=cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+    thresholdType=cv2.THRESH_BINARY_INV, blockSize=19, C=9)  # 적응형 이진화 처리 (경계 강조)
 
-# plt.figure(figsize=(12, 10))
-# plt.imshow(gray, cmap='gray') #gray image
+# **컨투어(윤곽선) 찾기**
+contours, hierarchy = cv2.findContours(img_thresh, mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_SIMPLE)  # 이미지에서 윤곽선(컨투어) 추출
 
-#**스레시 홀딩(thresholding)**
-img_blurred = cv2.GaussianBlur(gray, ksize=(5, 5), sigmaX=0) #cv2.GaussianBlur(): 이미지 노이즈 제거, 블러 처리
+# **컨투어를 시각화할 빈 이미지 생성**
+temp_result = np.zeros((height, width, channel), dtype=np.uint8)  # 빈 이미지 생성
+cv2.drawContours(temp_result, contours=contours, contourIdx=-1, color=(255, 255, 255))  # 윤곽선 그리기
 
-img_thresh = cv2.adaptiveThreshold(   #이진화 이미지, 픽셀 높으면 255(흰), 낮으면 0(검)으로 고정 => 이미지를 검은색, 흰색으로만 나누어 구분하기 쉽게 만듦
-    img_blurred, 
-    maxValue=255.0, 
-    adaptiveMethod=cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
-    thresholdType=cv2.THRESH_BINARY_INV, 
-    blockSize=19, 
-    C=9
-)
-
-# 가우시안 블러 작업을 미리 해야 스레시 홀드 후에 노이즈를 줄일 수 있음
-
-# plt.figure(figsize=(12, 10))
-# plt.imshow(img_thresh, cmap='gray')
-
-#**컨투어(윤곽선) 찾기**
-contours,hierarchy = cv2.findContours(  
-    img_thresh, 
-    mode=cv2.RETR_LIST, 
-    method=cv2.CHAIN_APPROX_SIMPLE
-)
-
-temp_result = np.zeros((height, width, channel), dtype=np.uint8)
-
-cv2.drawContours(temp_result, contours=contours, contourIdx=-1, color=(255, 255, 255))  #cv2.drawContours(): 윤곽선 그리기
-# -1 = 전체 컨투어를 그림 
-
-# 윤곽선을 그려서 번호판의 위치를 우선 찾아냄
-
-# plt.figure(figsize=(12, 10))
-# plt.imshow(temp_result)
-
-temp_result = np.zeros((height, width, channel), dtype=np.uint8)
-
-#번호판의 위치를 찾기 전 작
-contours_dict = [] #컨투어 정보 저장
-
+# **컨투어 정보를 저장하는 리스트 생성**
+contours_dict = []  # 컨투어 정보를 저장할 리스트
 for contour in contours:
-    x, y, w, h = cv2.boundingRect(contour) #cv2.boundingRect(): 컨투어의 사각형 범위 추출, 컨투어를 감싸는 사각형의 x, y 좌표와 너비, 높이 저장
-    cv2.rectangle(temp_result, pt1=(x, y), pt2=(x+w, y+h), color=(255, 255, 255), thickness=2)  #cv2.rectangle(): 바운딩 렉트를 그려봄(사각형)
-    
-    # insert to dict
-    contours_dict.append({
-#컨투어 딕트라는 리스트에 컨투어, x, y 좌표, 높이, 너비, 중심좌표 저장
-        'contour': contour,
-        'x': x,
-        'y': y,
-        'w': w,
-        'h': h,
-        'cx': x + (w / 2),  #사각형의 중심좌표
-        'cy': y + (h / 2)
-    })
+    x, y, w, h = cv2.boundingRect(contour)  # 바운딩 박스 정보 추출 (각 컨투어의 위치와 크기)
+    cv2.rectangle(temp_result, pt1=(x, y), pt2=(x + w, y + h), color=(255, 255, 255), thickness=2)  # 바운딩 박스 그리기
+    contours_dict.append({'contour': contour, 'x': x, 'y': y, 'w': w, 'h': h, 'cx': x + (w / 2), 'cy': y + (h / 2)})  # 컨투어 정보 저장
 
-# plt.figure(figsize=(12, 10))
-# plt.imshow(temp_result, cmap='gray')
+# **번호판 후보군 필터링 기준 설정**
+MIN_AREA = 80  # 최소 면적
+MIN_WIDTH, MIN_HEIGHT = 2, 8  # 최소 너비 및 높이
+MIN_RATIO, MAX_RATIO = 0.25, 1.0  # 가로세로 비율 범위
 
-#추출한 바운딩 렉트(사각형)에서 어떤 게 번호판 영역인지 걸러냄
-MIN_AREA = 80
-MIN_WIDTH, MIN_HEIGHT = 2, 8
-MIN_RATIO, MAX_RATIO = 0.25, 1.0
-
-possible_contours = [] #가능한 숫자들 저장
-
-cnt = 0
+# **조건을 만족하는 컨투어 필터링**
+possible_contours = []  # 가능한 문자 후보군 저장
+cnt = 0  # 인덱스 초기화
 for d in contours_dict:
-    area = d['w'] * d['h']
-    ratio = d['w'] / d['h'] 
-    
-    if area > MIN_AREA \
-    and d['w'] > MIN_WIDTH and d['h'] > MIN_HEIGHT \
-    and MIN_RATIO < ratio < MAX_RATIO:
-        d['idx'] = cnt
-        cnt += 1
-        possible_contours.append(d)
-        
-# visualize possible contours
-temp_result = np.zeros((height, width, channel), dtype=np.uint8)
+    area = d['w'] * d['h']  # 컨투어 면적 계산
+    ratio = d['w'] / d['h']  # 가로세로 비율 계산
+    if area > MIN_AREA and d['w'] > MIN_WIDTH and d['h'] > MIN_HEIGHT and MIN_RATIO < ratio < MAX_RATIO:  # 조건을 만족하는 경우
+        d['idx'] = cnt  # 인덱스 부여
+        cnt += 1  # 인덱스 증가
+        possible_contours.append(d)  # 필터링된 컨투어 저장
 
-for d in possible_contours:
-#     cv2.drawContours(temp_result, d['contour'], -1, (255, 255, 255))
-    cv2.rectangle(temp_result, pt1=(d['x'], d['y']), pt2=(d['x']+d['w'], d['y']+d['h']), color=(255, 255, 255), thickness=2)
-
-# plt.figure(figsize=(12, 10))
-# plt.imshow(temp_result, cmap='gray')
-
-MAX_DIAG_MULTIPLYER = 5 # 5
-MAX_ANGLE_DIFF = 12.0 # 12.0
-MAX_AREA_DIFF = 0.5 # 0.5
-MAX_WIDTH_DIFF = 0.8
-MAX_HEIGHT_DIFF = 0.2
-MIN_N_MATCHED = 3 # 3
+# **문자 후보군 정렬 및 그룹화 기준 설정**
+MAX_DIAG_MULTIPLYER = 5  # 대각선 거리 배수 기준
+MAX_ANGLE_DIFF = 12.0  # 최대 각도 차이 허용 범위
+MAX_AREA_DIFF = 0.5  # 최대 면적 차이 비율
+MAX_WIDTH_DIFF = 0.8  # 최대 너비 차이 비율
+MAX_HEIGHT_DIFF = 0.2  # 최대 높이 차이 비율
+MIN_N_MATCHED = 3  # 최소 일치 개수
 
 def find_chars(contour_list):
-    matched_result_idx = []
+    matched_result_idx = []  # 매칭된 컨투어 인덱스를 저장할 리스트 초기화
     
-    for d1 in contour_list:
-        matched_contours_idx = []
-        for d2 in contour_list:
-            if d1['idx'] == d2['idx']:
+    for d1 in contour_list:  # 주어진 컨투어 리스트에서 첫 번째 컨투어(d1)에 대해 반복
+        matched_contours_idx = []  # 현재 d1과 매칭된 컨투어 인덱스를 저장할 리스트 초기화
+        for d2 in contour_list:  # 두 번째 컨투어(d2)와 비교할 때 반복
+            if d1['idx'] == d2['idx']:  # d1과 d2가 동일한 컨투어라면 비교할 필요 없음
                 continue
 
-            dx = abs(d1['cx'] - d2['cx'])
-            dy = abs(d1['cy'] - d2['cy'])
+            dx = abs(d1['cx'] - d2['cx'])  # 두 컨투어의 x 중심 좌표 차이 계산
+            dy = abs(d1['cy'] - d2['cy'])  # 두 컨투어의 y 중심 좌표 차이 계산
 
-            diagonal_length1 = np.sqrt(d1['w'] ** 2 + d1['h'] ** 2)
+            diagonal_length1 = np.sqrt(d1['w'] ** 2 + d1['h'] ** 2)  # d1의 대각선 길이 계산
 
-            distance = np.linalg.norm(np.array([d1['cx'], d1['cy']]) - np.array([d2['cx'], d2['cy']]))
-            if dx == 0:
-                angle_diff = 90
+            distance = np.linalg.norm(np.array([d1['cx'], d1['cy']]) - np.array([d2['cx'], d2['cy']]))  # 두 컨투어의 실제 거리 계산
+            if dx == 0:  # x 차이가 0일 경우(수직 방향)
+                angle_diff = 90  # 각도 차이는 90도
             else:
-                angle_diff = np.degrees(np.arctan(dy / dx))
-            area_diff = abs(d1['w'] * d1['h'] - d2['w'] * d2['h']) / (d1['w'] * d1['h'])
-            width_diff = abs(d1['w'] - d2['w']) / d1['w']
-            height_diff = abs(d1['h'] - d2['h']) / d1['h']
+                angle_diff = np.degrees(np.arctan(dy / dx))  # 두 컨투어의 각도 차이 계산
 
+            area_diff = abs(d1['w'] * d1['h'] - d2['w'] * d2['h']) / (d1['w'] * d1['h'])  # 면적 차이 비율 계산
+            width_diff = abs(d1['w'] - d2['w']) / d1['w']  # 너비 차이 비율 계산
+            height_diff = abs(d1['h'] - d2['h']) / d1['h']  # 높이 차이 비율 계산
+
+            # 조건을 만족하는 경우, 두 컨투어는 매칭된 것으로 간주
             if distance < diagonal_length1 * MAX_DIAG_MULTIPLYER \
             and angle_diff < MAX_ANGLE_DIFF and area_diff < MAX_AREA_DIFF \
             and width_diff < MAX_WIDTH_DIFF and height_diff < MAX_HEIGHT_DIFF:
-                matched_contours_idx.append(d2['idx'])
+                matched_contours_idx.append(d2['idx'])  # 매칭된 d2의 인덱스를 리스트에 추가
 
-        # append this contour
+        # 현재 d1도 매칭된 컨투어로 추가
         matched_contours_idx.append(d1['idx'])
 
-        if len(matched_contours_idx) < MIN_N_MATCHED:
+        if len(matched_contours_idx) < MIN_N_MATCHED:  # 최소 매칭 개수를 충족하지 않으면 제외
             continue
 
-        matched_result_idx.append(matched_contours_idx)
+        matched_result_idx.append(matched_contours_idx)  # 최종 매칭된 컨투어 그룹을 결과에 추가
 
-        unmatched_contour_idx = []
+        unmatched_contour_idx = []  # 매칭되지 않은 컨투어 인덱스를 저장할 리스트 초기화
         for d4 in contour_list:
-            if d4['idx'] not in matched_contours_idx:
+            if d4['idx'] not in matched_contours_idx:  # 매칭되지 않은 d4의 인덱스를 리스트에 추가
                 unmatched_contour_idx.append(d4['idx'])
 
-        unmatched_contour = np.take(possible_contours, unmatched_contour_idx)
+        unmatched_contour = np.take(possible_contours, unmatched_contour_idx)  # 매칭되지 않은 컨투어들만 추출
         
-        # recursive
+        # 재귀적으로 남은 컨투어들을 다시 검사
         recursive_contour_list = find_chars(unmatched_contour)
         
         for idx in recursive_contour_list:
-            matched_result_idx.append(idx)
+            matched_result_idx.append(idx)  # 재귀적으로 찾은 매칭된 컨투어들도 결과에 추가
 
-        break
+        break  # 첫 번째 매칭이 완료되면 더 이상 진행하지 않음
 
-    return matched_result_idx
+    return matched_result_idx  # 최종 매칭된 컨투어 인덱스를 반환
     
-result_idx = find_chars(possible_contours)
+result_idx = find_chars(possible_contours)  # 번호판 후보군에 대해 문자 그룹 찾기
 
-matched_result = []
+matched_result = []  # 최종 매칭된 문자 그룹 저장 리스트 초기화
 for idx_list in result_idx:
-    matched_result.append(np.take(possible_contours, idx_list))
+    matched_result.append(np.take(possible_contours, idx_list))  # 매칭된 컨투어들을 결과 리스트에 추가
 
-# visualize possible contours
+# 번호판 후보군을 시각화할 빈 이미지 생성
 temp_result = np.zeros((height, width, channel), dtype=np.uint8)
 
-for r in matched_result:
-    for d in r:
-#         cv2.drawContours(temp_result, d['contour'], -1, (255, 255, 255))
-        cv2.rectangle(temp_result, pt1=(d['x'], d['y']), pt2=(d['x']+d['w'], d['y']+d['h']), color=(255, 255, 255), thickness=2)
+for r in matched_result:  # 각 번호판 그룹에 대해 반복
+    for d in r:  # 그룹에 속하는 각 문자에 대해 반복
+        #cv2.drawContours(temp_result, d['contour'], -1, (255, 255, 255))  # 컨투어 그리기 (주석 처리됨)
+        cv2.rectangle(temp_result, pt1=(d['x'], d['y']), pt2=(d['x']+d['w'], d['y']+d['h']), color=(255, 255, 255), thickness=2)  # 각 문자에 바운딩 박스를 그리기
 
-# plt.figure(figsize=(12, 10))
-# plt.imshow(temp_result, cmap='gray')
+# 번호판 영역 추출을 위한 설정
+PLATE_WIDTH_PADDING = 1.3  # 번호판 너비에 패딩 추가
+PLATE_HEIGHT_PADDING = 1.5  # 번호판 높이에 패딩 추가
+MIN_PLATE_RATIO = 3  # 번호판의 최소 가로세로 비율
+MAX_PLATE_RATIO = 10  # 번호판의 최대 가로세로 비율
 
-PLATE_WIDTH_PADDING = 1.3 # 1.3
-PLATE_HEIGHT_PADDING = 1.5 # 1.5
-MIN_PLATE_RATIO = 3
-MAX_PLATE_RATIO = 10
+plate_imgs = []  # 추출된 번호판 이미지를 저장할 리스트
+plate_infos = []  # 번호판의 위치와 크기 정보를 저장할 리스트
 
-plate_imgs = []
-plate_infos = []
+for i, matched_chars in enumerate(matched_result):  # 각 문자 그룹에 대해 번호판 크기 계산
+    sorted_chars = sorted(matched_chars, key=lambda x: x['cx'])  # x좌표 기준으로 정렬
 
-for i, matched_chars in enumerate(matched_result):
-    sorted_chars = sorted(matched_chars, key=lambda x: x['cx'])
-
+    # 번호판 중심 좌표 계산
     plate_cx = (sorted_chars[0]['cx'] + sorted_chars[-1]['cx']) / 2
     plate_cy = (sorted_chars[0]['cy'] + sorted_chars[-1]['cy']) / 2
     
+    # 번호판 너비 계산 (첫 번째 문자부터 마지막 문자까지의 거리)
     plate_width = (sorted_chars[-1]['x'] + sorted_chars[-1]['w'] - sorted_chars[0]['x']) * PLATE_WIDTH_PADDING
     
+    # 번호판 높이는 문자들의 높이를 평균 내서 계산
     sum_height = 0
     for d in sorted_chars:
         sum_height += d['h']
-
     plate_height = int(sum_height / len(sorted_chars) * PLATE_HEIGHT_PADDING)
     
+    # 번호판 기울기를 보정하기 위한 각도 계산
     triangle_height = sorted_chars[-1]['cy'] - sorted_chars[0]['cy']
-    triangle_hypotenus = np.linalg.norm(
-        np.array([sorted_chars[0]['cx'], sorted_chars[0]['cy']]) - 
-        np.array([sorted_chars[-1]['cx'], sorted_chars[-1]['cy']])
-    )
+    triangle_hypotenus = np.linalg.norm(np.array([sorted_chars[0]['cx'], sorted_chars[0]['cy']]) - np.array([sorted_chars[-1]['cx'], sorted_chars[-1]['cy']]))
+
+    angle = np.degrees(np.arcsin(triangle_height / triangle_hypotenus))  # 각도 계산
     
-    angle = np.degrees(np.arcsin(triangle_height / triangle_hypotenus))
-    
+    # 회전 행렬 생성 (번호판을 수평으로 맞추기 위해)
     rotation_matrix = cv2.getRotationMatrix2D(center=(plate_cx, plate_cy), angle=angle, scale=1.0)
     
+    # 이미지를 회전시켜서 번호판이 수평이 되도록 함
     img_rotated = cv2.warpAffine(img_thresh, M=rotation_matrix, dsize=(width, height))
     
-    img_cropped = cv2.getRectSubPix(
-        img_rotated, 
-        patchSize=(int(plate_width), int(plate_height)), 
-        center=(int(plate_cx), int(plate_cy))
-    )
+    # 번호판 영역을 자르기
+    img_cropped = cv2.getRectSubPix(img_rotated, patchSize=(int(plate_width), int(plate_height)), center=(int(plate_cx), int(plate_cy)))
     
-    if img_cropped.shape[1] / img_cropped.shape[0] < MIN_PLATE_RATIO or img_cropped.shape[1] / img_cropped.shape[0] < MIN_PLATE_RATIO > MAX_PLATE_RATIO:
+    # 번호판 이미지 비율 확인 (최소/최대 비율을 벗어난 경우 제외)
+    if img_cropped.shape[1] / img_cropped.shape[0] < MIN_PLATE_RATIO or img_cropped.shape[1] / img_cropped.shape[0] > MAX_PLATE_RATIO:
         continue
     
-    plate_imgs.append(img_cropped)
+    plate_imgs.append(img_cropped)  # 번호판 이미지 추가
     plate_infos.append({
         'x': int(plate_cx - plate_width / 2),
         'y': int(plate_cy - plate_height / 2),
@@ -390,77 +335,45 @@ for i, matched_chars in enumerate(matched_result):
         'h': int(plate_height)
     })
     
-    # plt.subplot(len(matched_result), 1, i+1)
-    # plt.imshow(img_cropped, cmap='gray')
+# 번호판에서 문자를 추출
+longest_idx, longest_text = -1, 0  # 가장 긴 번호판 텍스트를 추출할 변수 초기화
+plate_chars = []  # 추출된 번호판 문자 리스트
 
-
-longest_idx, longest_text = -1, 0
-plate_chars = []
-
-for i, plate_img in enumerate(plate_imgs):
-    plate_img = cv2.resize(plate_img, dsize=(0, 0), fx=1.6, fy=1.6)
-    _, plate_img = cv2.threshold(plate_img, thresh=0.0, maxval=255.0, type=cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+for i, plate_img in enumerate(plate_imgs):  # 각 번호판 이미지에 대해 문자 추출
+    plate_img = cv2.resize(plate_img, dsize=(0, 0), fx=1.6, fy=1.6)  # 이미지 크기 확장
+    _, plate_img = cv2.threshold(plate_img, thresh=0.0, maxval=255.0, type=cv2.THRESH_BINARY | cv2.THRESH_OTSU)  # 이진화
     
-    # find contours again (same as above)
+    # 번호판 이미지에서 다시 컨투어를 찾아 문자 영역을 추출
     contours, hierarchy = cv2.findContours(plate_img, mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_SIMPLE)
     
+    # 번호판 문자 영역 추출
     plate_min_x, plate_min_y = plate_img.shape[1], plate_img.shape[0]
     plate_max_x, plate_max_y = 0, 0
 
     for contour in contours:
         x, y, w, h = cv2.boundingRect(contour)
-        
-        area = w * h
-        ratio = w / h
-
-        if area > MIN_AREA \
-        and w > MIN_WIDTH and h > MIN_HEIGHT \
-        and MIN_RATIO < ratio < MAX_RATIO:
-            if x < plate_min_x:
-                plate_min_x = x
-            if y < plate_min_y:
-                plate_min_y = y
-            if x + w > plate_max_x:
-                plate_max_x = x + w
-            if y + h > plate_max_y:
-                plate_max_y = y + h
-                
-    img_result = plate_img[plate_min_y:plate_max_y, plate_min_x:plate_max_x]
+        plate_min_x = min(plate_min_x, x)
+        plate_min_y = min(plate_min_y, y)
+        plate_max_x = max(plate_max_x, x + w)
+        plate_max_y = max(plate_max_y, y + h)
     
-    img_result = cv2.GaussianBlur(img_result, ksize=(3, 3), sigmaX=0)
-    _, img_result = cv2.threshold(img_result, thresh=0.0, maxval=255.0, type=cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-    img_result = cv2.copyMakeBorder(img_result, top=10, bottom=10, left=10, right=10, borderType=cv2.BORDER_CONSTANT, value=(0,0,0))
+    # 번호판 이미지에서 문자를 인식
+    plate_str = pytesseract.image_to_string(plate_img[plate_min_y:plate_max_y, plate_min_x:plate_max_x], config="--psm 8 --oem 3")  # OCR로 문자 인식
+    plate_str = plate_str.strip().replace(" ", "")  # 인식된 문자열에서 공백 제거
 
-    chars = pytesseract.image_to_string(img_result, lang='kor', config='--psm 7 --oem 0')
-    
-    result_chars = ''
-    has_digit = False
-    for c in chars:
-        if ord('가') <= ord(c) <= ord('힣') or c.isdigit():
-            if c.isdigit():
-                has_digit = True
-            result_chars += c
-    
-    # print(result_chars)
-    plate_chars.append(result_chars)
-
-    if has_digit and len(result_chars) > longest_text:
+    # 가장 긴 번호판 텍스트 추출
+    if len(plate_str) > longest_text:
+        longest_text = len(plate_str)
         longest_idx = i
 
-    # plt.subplot(len(plate_imgs), 1, i+1)
-    # plt.imshow(img_result, cmap='gray')
+    plate_chars.append(plate_str)  # 추출된 번호판 문자 리스트에 추가
 
-    info = plate_infos[longest_idx]
-chars = plate_chars[longest_idx]
+# 최종 추출된 번호판 이미지와 문자를 출력
+final_plate = plate_imgs[longest_idx]  # 가장 긴 번호판 이미지를 선택
+final_text = plate_chars[longest_idx]  # 해당 번호판의 문자 선택
 
-# print("추출된 번호 : ", chars)
-
-img_out = img_ori.copy()
-
-cv2.rectangle(img_out, pt1=(info['x'], info['y']), pt2=(info['x']+info['w'], info['y']+info['h']), color=(255,0,0), thickness=2)
-
-cv2.imwrite(chars + ' 번호 영역.jpg', img_out)
-cv2.imwrite(chars + ' 번호 추출.jpg', img_cropped)
+print("Extracted Plate Text: ", final_text)  # 추출된 번호판 텍스트 출력
+cv2.imshow("Final Plate Image", final_plate)  # 번호판 이미지 출력
 ```
 
 
