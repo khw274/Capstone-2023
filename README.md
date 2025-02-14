@@ -350,30 +350,74 @@ for i, plate_img in enumerate(plate_imgs):  # 각 번호판 이미지에 대해 
     plate_min_x, plate_min_y = plate_img.shape[1], plate_img.shape[0]
     plate_max_x, plate_max_y = 0, 0
 
-    for contour in contours:
-        x, y, w, h = cv2.boundingRect(contour)
-        plate_min_x = min(plate_min_x, x)
-        plate_min_y = min(plate_min_y, y)
-        plate_max_x = max(plate_max_x, x + w)
-        plate_max_y = max(plate_max_y, y + h)
+    for contour in contours:  # 이미지에서 찾은 각 컨투어(contour)에 대해 반복
+        x, y, w, h = cv2.boundingRect(contour)  # 각 컨투어에 대해 바운딩 박스(x, y, w, h)를 계산
     
-    # 번호판 이미지에서 문자를 인식
-    plate_str = pytesseract.image_to_string(plate_img[plate_min_y:plate_max_y, plate_min_x:plate_max_x], config="--psm 8 --oem 3")  # OCR로 문자 인식
-    plate_str = plate_str.strip().replace(" ", "")  # 인식된 문자열에서 공백 제거
+        area = w * h  # 바운딩 박스의 면적 계산
+        ratio = w / h  # 바운딩 박스의 가로와 세로 비율 계산
+    
+        # 면적, 가로/세로 크기, 비율에 대한 조건을 모두 만족하는지 확인
+        if area > MIN_AREA and w > MIN_WIDTH and h > MIN_HEIGHT and MIN_RATIO < ratio < MAX_RATIO:
+            # 조건을 만족하는 경우, 번호판 영역을 확장하기 위한 최소/최대 x, y 좌표 갱신
+            if x < plate_min_x:
+                plate_min_x = x
+            if y < plate_min_y:
+                plate_min_y = y
+            if x + w > plate_max_x:
+                plate_max_x = x + w
+            if y + h > plate_max_y:
+                plate_max_y = y + h
+    
+    # 추출된 번호판 영역을 자른 이미지
+    img_result = plate_img[plate_min_y:plate_max_y, plate_min_x:plate_max_x]  
+    
+    # 자른 번호판 이미지에 Gaussian 블러 필터 적용
+    img_result = cv2.GaussianBlur(img_result, ksize=(3, 3), sigmaX=0)
+    
+    # 이미지를 이진화하여 이진화된 이미지로 변환 (Otsu의 이진화 기법 사용)
+    _, img_result = cv2.threshold(img_result, thresh=0.0, maxval=255.0, type=cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    
+    # 이미지에 상하좌우 10픽셀의 블랙 테두리 추가
+    img_result = cv2.copyMakeBorder(img_result, top=10, bottom=10, left=10, right=10, borderType=cv2.BORDER_CONSTANT, value=(0,0,0))
+    
+    # Tesseract를 사용해 번호판에서 텍스트를 추출
+    chars = pytesseract.image_to_string(img_result, lang='kor', config='--psm 7 --oem 0')
+    
+    result_chars = ''  # 최종적으로 추출된 텍스트를 저장할 변수
+    has_digit = False  # 텍스트에 숫자가 포함되어 있는지 여부를 확인하는 변수
+    
+    # 추출된 문자들 중 한글과 숫자만 필터링하여 result_chars에 저장
+    for c in chars:
+        if ord('가') <= ord(c) <= ord('힣') or c.isdigit():  # 한글 또는 숫자일 경우
+            if c.isdigit():  # 숫자일 경우, has_digit 플래그를 True로 설정
+                has_digit = True
+            result_chars += c  # 문자에 추가
+    
+    # 번호판에 포함된 문자를 저장
+    plate_chars.append(result_chars)
+    
+    # 만약 숫자가 포함되어 있고, 현재 추출된 번호가 더 긴 경우
+    if has_digit and len(result_chars) > longest_text:
+        longest_idx = i  # 가장 긴 번호판 번호 인덱스를 업데이트
+    
+    # 번호판 번호가 포함된 정보를 가져옴
+    info = plate_infos[longest_idx]
+    
+    # 최종 번호판 문자
+    chars = plate_chars[longest_idx]
+    
+    # 결과 이미지를 원본 이미지로 초기화
+    img_out = img_ori.copy()
+    
+    # 번호판 영역에 빨간색 사각형을 그려 표시
+    cv2.rectangle(img_out, pt1=(info['x'], info['y']), pt2=(info['x']+info['w'], info['y']+info['h']), color=(255,0,0), thickness=2)
+    
+    # 번호판 영역 이미지를 파일로 저장
+    cv2.imwrite(chars + ' 번호 영역.jpg', img_out)
+    
+    # 번호판만 추출한 이미지를 파일로 저장
+    cv2.imwrite(chars + ' 번호 추출.jpg', img_cropped)
 
-    # 가장 긴 번호판 텍스트 추출
-    if len(plate_str) > longest_text:
-        longest_text = len(plate_str)
-        longest_idx = i
-
-    plate_chars.append(plate_str)  # 추출된 번호판 문자 리스트에 추가
-
-# 최종 추출된 번호판 이미지와 문자를 출력
-final_plate = plate_imgs[longest_idx]  # 가장 긴 번호판 이미지를 선택
-final_text = plate_chars[longest_idx]  # 해당 번호판의 문자 선택
-
-print("Extracted Plate Text: ", final_text)  # 추출된 번호판 텍스트 출력
-cv2.imshow("Final Plate Image", final_plate)  # 번호판 이미지 출력
 ```
 
 
