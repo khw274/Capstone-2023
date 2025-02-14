@@ -188,7 +188,15 @@ contours_dict = []  # 컨투어 정보를 저장할 리스트
 for contour in contours:
     x, y, w, h = cv2.boundingRect(contour)  # 바운딩 박스 정보 추출 (각 컨투어의 위치와 크기)
     cv2.rectangle(temp_result, pt1=(x, y), pt2=(x + w, y + h), color=(255, 255, 255), thickness=2)  # 바운딩 박스 그리기
-    contours_dict.append({'contour': contour, 'x': x, 'y': y, 'w': w, 'h': h, 'cx': x + (w / 2), 'cy': y + (h / 2)})  # 컨투어 정보 저장
+    contours_dict.append({
+        'contour': contour,
+        'x': x,
+        'y': y,
+        'w': w,
+        'h': h,
+        'cx': x + (w / 2),
+        'cy': y + (h / 2)
+    })  # 컨투어 정보 저장
 
 # **번호판 후보군 필터링 기준 설정**
 MIN_AREA = 80  # 최소 면적
